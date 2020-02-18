@@ -13,12 +13,12 @@ import com.reactnativenavigation.viewcontrollers.ParentController;
 import com.reactnativenavigation.viewcontrollers.ViewController;
 import com.reactnativenavigation.viewcontrollers.ViewVisibilityListenerAdapter;
 import com.reactnativenavigation.views.toptabs.TopTabsLayoutCreator;
-import com.reactnativenavigation.views.toptabs.TopTabsViewPager;
+import com.reactnativenavigation.views.toptabs.TopTabsLayout;
 
 import java.util.Collection;
 import java.util.List;
 
-public class TopTabsController extends ParentController<TopTabsViewPager> {
+public class TopTabsController extends ParentController<TopTabsLayout> {
 
     private List<ViewController> tabs;
     private TopTabsLayoutCreator viewCreator;
@@ -45,9 +45,9 @@ public class TopTabsController extends ParentController<TopTabsViewPager> {
 
     @NonNull
     @Override
-    protected TopTabsViewPager createView() {
+    protected TopTabsLayout createView() {
         view = viewCreator.create();
-        return (TopTabsViewPager) view;
+        return (TopTabsLayout) view;
     }
 
     @NonNull
@@ -89,13 +89,33 @@ public class TopTabsController extends ParentController<TopTabsViewPager> {
     @Override
     public void applyChildOptions(Options options, ViewController child) {
         super.applyChildOptions(options, child);
-        performOnParentController(parentController -> ((ParentController) parentController).applyChildOptions(this.options.copy(), child));
+        performOnParentController(parentController ->
+            ((ParentController) parentController).applyChildOptions(
+                this.options.copy()
+                    .clearTopBarOptions()
+                    .clearAnimationOptions()
+                    .clearFabOptions()
+                    .clearTopTabOptions()
+                    .clearTopTabsOptions(),
+                child
+            )
+        );
     }
 
     @CallSuper
     public void mergeChildOptions(Options options, ViewController child) {
         super.mergeChildOptions(options, child);
-        performOnParentController(parentController -> ((ParentController) parentController).applyChildOptions(options.copy(), child));
+        performOnParentController(parentController ->
+            ((ParentController) parentController).mergeChildOptions(
+                options.copy()
+                    .clearTopBarOptions()
+                    .clearAnimationOptions()
+                    .clearFabOptions()
+                    .clearTopTabOptions()
+                    .clearTopTabsOptions(),
+                child
+            )
+        );
     }
 
     public void switchToTab(int index) {
@@ -104,5 +124,12 @@ public class TopTabsController extends ParentController<TopTabsViewPager> {
 
     private void performOnCurrentTab(Func1<ViewController> task) {
         task.run(tabs.get(getView().getCurrentItem()));
+    }
+
+    @Override
+    public void destroy() {
+        getView().destroy();
+
+        super.destroy();
     }
 }
